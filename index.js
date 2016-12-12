@@ -21,39 +21,21 @@ function poll () {
     .then((data) => {
       let d = JSON.parse(data)
       let l = d.data.songs.length
-      if (l) {
-        let cursor = 0
-        d.data.songs.forEach((el) => {
-          if (el.artist) {
-            let t = {
-              id: el.artist + '|' + el.title + '|' + el.played_at,
-              title: el.title,
-              artist: el.artist,
-              album: el.album,
-              played_at: Date.parse(el.played_at)
-            }
 
-            Track.findOne({id: t.id}, 'id')
-              .exec()
-              .then((res) => {
-                if (!res) {
-                  Track.create(t)
-                    .then((r) => {
-                      process.stdout.write('+')
-                      if (++cursor === l) {
-                        wait()
-                      }
-                    })
-                    .catch((e) => {
-                      console.log('error', e)
-                      if (++cursor === l) {
-                        wait()
-                      }
-                    })
-                }
-              })
-          }
-        })
+      if (l) {
+        // Promise array
+        var p = []
+        for (let i = 0; i < l; i++) {
+          p.push(processItem(d.data.songs[i]))
+        }
+        Promise.all(p)
+          .then((data) => {
+            wait()
+          })
+          .catch((e) => {
+            console.log('error in processing', e)
+            wait()
+          })
       }
     })
     .catch((err) => {
@@ -62,9 +44,40 @@ function poll () {
     })
 }
 
+function processItem (el) {
+  return new Promise((resolve, reject) => {
+    if (el.artist) {
+      let t = {
+        id: el.artist + '|' + el.title + '|' + el.played_at,
+        title: el.title,
+        artist: el.artist,
+        album: el.album,
+        played_at: Date.parse(el.played_at)
+      }
+
+      Track.findOne({id: t.id}, 'id')
+        .exec()
+        .then((res) => {
+          if (!res) {
+            Track.create(t)
+              .then((r) => {
+                return resolve()
+              })
+              .catch((e) => {
+                return reject(e)
+              })
+          } else {
+            return resolve()
+          }
+        })
+    } else {
+      return resolve()
+    }
+  })
+}
+
 // Wait 30 seconds.
 function wait () {
-  console.log('wait.')
   setTimeout(() => {
     poll()
   }, 30000)
