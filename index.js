@@ -37,6 +37,7 @@ function poll () {
               if (!res) {
                 Track.create(t)
                   .then((r) => {
+                    process.stdout.write('+')
                     if (++cursor === l) {
                       wait()
                     }
@@ -60,6 +61,7 @@ function poll () {
 
 // Wait 30 seconds.
 function wait () {
+  console.log('wait.')
   setTimeout(() => {
     poll()
   }, 30000)
