@@ -24,32 +24,35 @@ function poll () {
       if (l) {
         let cursor = 0
         d.data.songs.forEach((el) => {
-          let t = {
-            id: el.artist + '|' + el.title + '|' + el.played_at,
-            title: el.title,
-            artist: el.artist,
-            album: el.album,
-            played_at: Date.parse(el.played_at)
+          if (el.artist) {
+            let t = {
+              id: el.artist + '|' + el.title + '|' + el.played_at,
+              title: el.title,
+              artist: el.artist,
+              album: el.album,
+              played_at: Date.parse(el.played_at)
+            }
+
+            Track.findOne({id: t.id}, 'id')
+              .exec()
+              .then((res) => {
+                if (!res) {
+                  Track.create(t)
+                    .then((r) => {
+                      process.stdout.write('+')
+                      if (++cursor === l) {
+                        wait()
+                      }
+                    })
+                    .catch((e) => {
+                      console.log('error', e)
+                      if (++cursor === l) {
+                        wait()
+                      }
+                    })
+                }
+              })
           }
-          Track.findOne({id: t.id}, 'id')
-            .exec()
-            .then((res) => {
-              if (!res) {
-                Track.create(t)
-                  .then((r) => {
-                    process.stdout.write('+')
-                    if (++cursor === l) {
-                      wait()
-                    }
-                  })
-                  .catch((e) => {
-                    console.log('error', e)
-                    if (++cursor === l) {
-                      wait()
-                    }
-                  })
-              }
-            })
         })
       }
     })
