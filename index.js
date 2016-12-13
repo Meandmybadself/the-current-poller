@@ -6,8 +6,8 @@ const PLAYLIST_URL = 'http://nowplaying.publicradio.org/the-current/playlist'
 
 const TrackSchema = new mongoose.Schema({
   'id': {type: 'String', required: true},
-  'artist': {type: 'String', required: true},
-  'album': {type: 'String', required: true},
+  'artist': {type: 'String'},
+  'album': {type: 'String'},
   'played_at': {type: Date, required: true},
   'title': {type: 'String', required: true}
 })
@@ -46,7 +46,7 @@ function poll () {
 
 function processItem (el) {
   return new Promise((resolve, reject) => {
-    if (el.artist) {
+      
       let t = {
         id: el.artist + '|' + el.title + '|' + el.played_at,
         title: el.title,
@@ -70,9 +70,7 @@ function processItem (el) {
             return resolve()
           }
         })
-    } else {
-      return resolve()
-    }
+
   })
 }
 
